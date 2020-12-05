@@ -3,10 +3,11 @@ use std::fs::File;
 use std::io::{BufReader, BufRead, Error, ErrorKind};
 use itertools::Itertools;
 use regex::Regex;
+use std::collections::HashMap;
 
 fn main() -> io::Result<()> {
     // day2_p2().unwrap();
-    day3_p2().unwrap();
+    day4_p1().unwrap();
 
     return Ok(());
 }
@@ -163,7 +164,7 @@ fn day3_p1() -> io::Result<u32> {
 
     let mut count: u32 = 0;
 
-    while true {
+    loop {
         x = (x + 3) % width;
         y += 1;
 
@@ -220,7 +221,7 @@ fn day3_p2() -> io::Result<u32> {
 
         let mut count: u32 = 0;
 
-        while true {
+        loop {
             x = (x + slope.0) % width;
             y += slope.1;
 
@@ -245,4 +246,49 @@ fn day3_p2() -> io::Result<u32> {
     println!("Product: {}", result);
 
     Ok(result)
+}
+
+fn day4_p1() -> io::Result<u16> {
+    let file = File::open("input/day4.txt")?;
+    let reader = BufReader::new(file);
+    let re = Regex::new(r"([^\s]+):([^\s]+)").unwrap();
+
+    let mut fields: HashMap<String, String> = HashMap::new();
+
+    let mut count: u16 = 0;
+    
+    fn is_valid(fields: &HashMap<String, String>) -> bool {
+        fields.contains_key("byr") &&
+            fields.contains_key("iyr") &&
+            fields.contains_key("eyr") &&
+            fields.contains_key("hgt") &&
+            fields.contains_key("hcl") &&
+            fields.contains_key("ecl") &&
+            fields.contains_key("pid")
+    }
+
+    for line in reader.lines() {
+        let s = line.unwrap();
+
+        if s == "" {
+            if is_valid(&fields) {
+                count += 1;
+            }
+
+            fields.clear();
+            continue;
+        }
+
+        for x in re.captures_iter(&s) {
+            fields.insert(x[1].to_string(), x[2].to_string());
+        }
+    }
+
+    if is_valid(&fields) {
+        count += 1;
+    }
+
+    println!("Valid: {}", count);
+
+    Ok(count)
 }
