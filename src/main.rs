@@ -2,12 +2,12 @@ use std::io;
 use std::fs::File;
 use std::io::{BufReader, BufRead, Error, ErrorKind};
 use itertools::Itertools;
-use regex::Regex;
+use regex::{Regex, Captures};
 use std::collections::HashMap;
 
 fn main() -> io::Result<()> {
     // day2_p2().unwrap();
-    day4_p1().unwrap();
+    day4_p2().unwrap();
 
     return Ok(());
 }
@@ -231,8 +231,6 @@ fn day3_p2() -> io::Result<u32> {
 
             let c = grid[y][x];
 
-            // println!("{} {} {}", x, y, c);
-
             if c == '#' {
                 count += 1;
             }
@@ -256,7 +254,7 @@ fn day4_p1() -> io::Result<u16> {
     let mut fields: HashMap<String, String> = HashMap::new();
 
     let mut count: u16 = 0;
-    
+
     fn is_valid(fields: &HashMap<String, String>) -> bool {
         fields.contains_key("byr") &&
             fields.contains_key("iyr") &&
@@ -280,6 +278,108 @@ fn day4_p1() -> io::Result<u16> {
         }
 
         for x in re.captures_iter(&s) {
+            fields.insert(x[1].to_string(), x[2].to_string());
+        }
+    }
+
+    if is_valid(&fields) {
+        count += 1;
+    }
+
+    println!("Valid: {}", count);
+
+    Ok(count)
+}
+
+fn day4_p2() -> io::Result<u16> {
+    let file = File::open("input/day4.txt")?;
+    let reader = BufReader::new(file);
+    let re = Regex::new(r"([^\s]+):([^\s]+)").unwrap();
+
+    //
+
+    let v_hgt = &Regex::new(r"^(\d+)(cm|in)$").unwrap();
+    let v_hcl = &Regex::new(r"^#[0-9a-f]{6}$").unwrap();
+    let v_ecl = &Regex::new(r"^(?:amb|blu|brn|gry|grn|hzl|oth)$").unwrap();
+    let v_pid = &Regex::new(r"^[0-9]{9}$").unwrap();
+
+    //
+
+    let mut fields: HashMap<String, String> = HashMap::new();
+
+    let mut count: u16 = 0;
+
+    let is_valid = |fields: &HashMap<String, String>| -> bool {
+        let hasAll = fields.contains_key("byr") &&
+            fields.contains_key("iyr") &&
+            fields.contains_key("eyr") &&
+            fields.contains_key("hgt") &&
+            fields.contains_key("hcl") &&
+            fields.contains_key("ecl") &&
+            fields.contains_key("pid");
+
+        if !hasAll {
+            return false;
+        }
+
+        let byr = fields["byr"].parse::<u16>().unwrap();
+        if !(byr >= 1920 && byr <= 2002) { return false; }
+        // if 1920 > byr || byr > 2002 { return false; }
+
+        let iyr = fields["iyr"].parse::<u16>().unwrap();
+        if !(iyr >= 2010 && iyr <= 2020) { return false; }
+        // if 2010 > iyr || iyr > 2020 { return false; }
+
+        let eyr = fields["eyr"].parse::<u16>().unwrap();
+        if !(eyr >= 2020 && eyr <= 2030) { return false; }
+        // if 2020 > eyr || eyr > 2030 { return false; }
+
+        match v_hgt.captures(&fields["hgt"]) {
+            None => return false,
+            Some(m) => {
+                let u = &m[2];
+                let v = m[1].parse::<u16>().unwrap();
+
+                if u == "cm" {
+                    if 150 > v || v > 193 { return false; }
+                } else if u == "in" {
+                    if 59 > v || v > 76 { return false; }
+                } else {
+                    return false;
+                }
+                println!("{} {}", &m[1], &m[2])
+            }
+        }
+
+        let pid = v_pid.is_match(&fields["pid"]);
+        if !pid { return false; }
+
+        let hcl = v_hcl.is_match(&fields["hcl"]);
+        if !hcl { return false; }
+
+        let ecl = v_ecl.is_match(&fields["ecl"]);
+        if !ecl { return false; }
+
+        true
+    };
+
+
+    for line in reader.lines() {
+        let s = line.unwrap();
+
+        if s == "" {
+            if is_valid(&fields) {
+                count += 1;
+            }
+
+            fields.clear();
+            continue;
+        }
+
+        for x in re.captures_iter(&s) {
+            if fields.contains_key(&x[1].to_string()) {
+                println!("DUPE: {}", &x[1].to_string());
+            }
             fields.insert(x[1].to_string(), x[2].to_string());
         }
     }
