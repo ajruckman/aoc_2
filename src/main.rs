@@ -5,7 +5,8 @@ use itertools::Itertools;
 use regex::Regex;
 
 fn main() -> io::Result<()> {
-    day2_p2().unwrap();
+    // day2_p2().unwrap();
+    day3_p2().unwrap();
 
     return Ok(());
 }
@@ -45,7 +46,7 @@ fn day1() -> io::Result<u32> {
         }
     }
 
-    return Err(Error::new(ErrorKind::NotFound, "No results"))
+    return Err(Error::new(ErrorKind::NotFound, "No results"));
     // Ok(())
 }
 
@@ -132,4 +133,116 @@ fn day2_p2() -> io::Result<u16> {
     //
 
     Ok(valid)
+}
+
+fn day3_p1() -> io::Result<u32> {
+    let file = File::open("input/day3.txt")?;
+    let reader = BufReader::new(file);
+
+    let mut rows: Vec<String> = Vec::new();
+
+    for line in reader.lines() {
+        rows.push(line?);
+    }
+
+    let width = rows[0].len();
+    let height = rows.len();
+
+    println!("{} {}", width, height);
+    let mut grid = vec![vec![' '; width]; height];
+
+    for y in 0..height {
+        let row = rows[y].as_bytes();
+        for x in 0..width {
+            grid[y][x] = row[x] as char;
+        }
+    }
+
+    let mut x: usize = 0;
+    let mut y: usize = 0;
+
+    let mut count: u32 = 0;
+
+    while true {
+        x = (x + 3) % width;
+        y += 1;
+
+        if y >= height {
+            break;
+        }
+
+        let c = grid[y][x];
+
+        println!("{} {} {}", x, y, c);
+
+        if c == '#' {
+            count += 1;
+        }
+    }
+
+    println!("Trees: {}", count);
+
+    //
+
+    Ok(count)
+}
+
+fn day3_p2() -> io::Result<u32> {
+    let file = File::open("input/day3.txt")?;
+    let reader = BufReader::new(file);
+
+    let mut rows: Vec<String> = Vec::new();
+
+    for line in reader.lines() {
+        rows.push(line?);
+    }
+
+    let width = rows[0].len();
+    let height = rows.len();
+
+    println!("{} {}", width, height);
+    let mut grid = vec![vec![' '; width]; height];
+
+    for y in 0..height {
+        let row = rows[y].as_bytes();
+        for x in 0..width {
+            grid[y][x] = row[x] as char;
+        }
+    }
+
+    let slopes: [(usize, usize); 5] = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
+
+    let mut result: u32 = 0;
+
+    for slope in slopes.iter() {
+        let mut x: usize = 0;
+        let mut y: usize = 0;
+
+        let mut count: u32 = 0;
+
+        while true {
+            x = (x + slope.0) % width;
+            y += slope.1;
+
+            if y >= height {
+                break;
+            }
+
+            let c = grid[y][x];
+
+            // println!("{} {} {}", x, y, c);
+
+            if c == '#' {
+                count += 1;
+            }
+        }
+
+        println!("Trees ({}, {}): {}", slope.0, slope.1, count);
+
+        result = if result == 0 { count } else { result * count };
+    }
+
+    println!("Product: {}", result);
+
+    Ok(result)
 }
