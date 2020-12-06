@@ -3,11 +3,11 @@ use std::fs::File;
 use std::io::{BufReader, BufRead, Error, ErrorKind};
 use itertools::Itertools;
 use regex::{Regex, Captures};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 fn main() -> io::Result<()> {
     // day2_p2().unwrap();
-    day5_p2().unwrap();
+    day6_p2().unwrap();
 
     return Ok(());
 }
@@ -440,10 +440,12 @@ fn day5_p2() -> io::Result<u32> {
     let max = seat_ids.iter().max().unwrap();
 
     let mut last = min;
+    let mut seat = 0;
 
     for i in seat_ids.iter() {
         if i - last > 1 {
             println!("Seat: {}", i - 1);
+            seat = i - 1;
             break;
         }
 
@@ -454,6 +456,84 @@ fn day5_p2() -> io::Result<u32> {
 
         last = i;
     }
+
+    Ok(seat)
+}
+
+fn day6_p1() -> io::Result<u16> {
+    let file = File::open("input/day6.txt")?;
+    let reader = BufReader::new(file);
+
+    let mut answers: HashSet<char> = HashSet::new();
+    let mut sum: u16 = 0;
+
+    for line in reader.lines() {
+        let s = line.unwrap();
+
+        if s == "" {
+            sum += answers.len() as u16;
+
+            answers.clear();
+            continue;
+        }
+
+        for b in s.as_bytes() {
+            answers.insert(*b as char);
+        }
+    }
+
+    sum += answers.len() as u16;
+
+    println!("Answers: {}", sum);
+
+    Ok(sum)
+}
+
+fn day6_p2() -> io::Result<u16> {
+    let file = File::open("input/day6.txt")?;
+    let reader = BufReader::new(file);
+
+    let mut answers: HashSet<char> = HashSet::new();
+    let mut sum: u16 = 0;
+    let mut set = false;
+
+    for line in reader.lines() {
+        let s = line.unwrap();
+
+        if s == "" {
+            set = false;
+            sum += answers.len() as u16;
+
+            answers.clear();
+            continue;
+        }
+
+        let mut seen: HashSet<char> = HashSet::new();
+
+        for b in s.as_bytes() {
+            seen.insert(*b as char);
+        }
+
+        if !set {
+            set = true;
+            answers = seen;
+            continue;
+        }
+
+        let mut answers_new: HashSet<char> = HashSet::new();
+
+        for b in answers {
+            if seen.contains(&b) {
+                answers_new.insert(b);
+            }
+        }
+
+        answers = answers_new;
+    }
+
+    sum += answers.len() as u16;
+
+    println!("Answers: {}", sum);
 
     Ok(0)
 }
