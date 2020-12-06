@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 fn main() -> io::Result<()> {
     // day2_p2().unwrap();
-    day4_p2().unwrap();
+    day5_p2().unwrap();
 
     return Ok(());
 }
@@ -310,7 +310,7 @@ fn day4_p2() -> io::Result<u16> {
     let mut count: u16 = 0;
 
     let is_valid = |fields: &HashMap<String, String>| -> bool {
-        let hasAll = fields.contains_key("byr") &&
+        let has_all = fields.contains_key("byr") &&
             fields.contains_key("iyr") &&
             fields.contains_key("eyr") &&
             fields.contains_key("hgt") &&
@@ -318,7 +318,7 @@ fn day4_p2() -> io::Result<u16> {
             fields.contains_key("ecl") &&
             fields.contains_key("pid");
 
-        if !hasAll {
+        if !has_all {
             return false;
         }
 
@@ -391,4 +391,69 @@ fn day4_p2() -> io::Result<u16> {
     println!("Valid: {}", count);
 
     Ok(count)
+}
+
+fn day5_p1() -> io::Result<u32> {
+    let file = File::open("input/day5.txt")?;
+    let reader = BufReader::new(file);
+
+    let r = reader.lines()
+        .map(|v| v.unwrap())
+        .map(|v| {
+            let mut x = v;
+            x = x.replace("F", "0");
+            x = x.replace("B", "1");
+            x = x.replace("L", "0");
+            x = x.replace("R", "1");
+
+            x
+        })
+        .map(|v| u32::from_str_radix(&v, 2).unwrap())
+        .max()
+        .unwrap();
+
+    println!("Max seat ID: {}", r);
+
+    Ok(r)
+}
+
+fn day5_p2() -> io::Result<u32> {
+    let file = File::open("input/day5.txt")?;
+    let reader = BufReader::new(file);
+
+    let seat_ids = reader.lines()
+        .map(|v| v.unwrap())
+        .map(|v| {
+            let mut x = v;
+            x = x.replace("F", "0");
+            x = x.replace("B", "1");
+            x = x.replace("L", "0");
+            x = x.replace("R", "1");
+
+            x
+        })
+        .map(|v| u32::from_str_radix(&v, 2).unwrap())
+        .sorted()
+        .collect_vec();
+
+    let min = seat_ids.iter().min().unwrap();
+    let max = seat_ids.iter().max().unwrap();
+
+    let mut last = min;
+
+    for i in seat_ids.iter() {
+        if i - last > 1 {
+            println!("Seat: {}", i - 1);
+            break;
+        }
+
+        if i == max {
+            println!("No seat IDs found!");
+            break;
+        }
+
+        last = i;
+    }
+
+    Ok(0)
 }
